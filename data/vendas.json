@@ -1,0 +1,43 @@
+[
+    {
+        "codigo": "SA1A33XWR1",
+        "linkProduto": "",
+        "produto": "Remos para Caiaque ou Canoa - Novos",
+        "valor": 70,
+        "dataVenda": "16/05",
+        "comprador": "menor",
+        "plataforma": "OLX",
+        "vendedor": {
+            "nome": "Martalucia Menezes",
+            "localizacao": "Engenho do Mato - Niterói, RJ, 24344125",
+            "avaliacao": 4,
+            "produtosVendidos": 0
+        },
+        "imagem": [
+            "https://img.olx.com.br/images/23/237526157762566.jpg"
+        ]
+    },
+    {
+        "codigo": "6BBVYDGRDG",
+        "linkProduto": "",
+        "produto": "Iphone 12 pro max 128gb impecável",
+        "valor": 2100,
+        "dataVenda": "19/05",
+        "comprador": "MENORDACU",
+        "plataforma": "OLX",
+        "vendedor": {
+            "nome": "Gustavo Gomes",
+            "localizacao": "Jardim Boa Esperança (Vicente de Carvalho) - Guarujá, SP, 11470190",
+            "avaliacao": 0,
+            "produtosVendidos": 0
+        },
+        "imagem": [
+            "https://img.olx.com.br/images/32/325528405413112.jpg",
+            "https://img.olx.com.br/images/33/339552881403733.jpg",
+            "https://img.olx.com.br/images/34/342526768196515.jpg",
+            "https://img.olx.com.br/images/36/361584527601831.jpg",
+            "https://img.olx.com.br/images/37/378532165856671.jpg",
+            "https://img.olx.com.br/images/38/386531764274146.jpg"
+        ]
+    }
+]

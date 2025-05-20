@@ -26,6 +26,9 @@ async function extrairDadosProdutoOLX(url) {
         nomeDono: obterTexto(
           "[class='olx-text olx-text--body-large olx-text--block olx-text--regular ad__sc-ypp2u2-4 TTTuh']"
         ),
+        vendasConcluidas: obterTexto(
+          "span[class='olx-text olx-text--body-large olx-text--block olx-text--semibold ad__sc-7hykp4-9 kzZAIY']"
+        ),
         descricao: obterTexto(
           "#description-title > div > div.ad__sc-2mjlki-0.cbbFAE.olx-d-flex.olx-ai-flex-start.olx-fd-column > div > span > span"
         ),
@@ -51,5 +54,8 @@ async function extrairDadosProdutoOLX(url) {
     };
   }
 }
+extrairDadosProdutoOLX(
+  "https://sp.olx.com.br/sao-paulo-e-regiao/games/jogos-de-video-game/playstation-4-ps4-varios-jogos-1405325769?utm_medium=shared_link&utm_source=direct"
+);
 
 module.exports = { extrairDadosProduto: extrairDadosProdutoOLX };

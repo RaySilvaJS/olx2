@@ -4,7 +4,7 @@
     "description": "Servidor para aplicação OLX",
     "main": "server.js",
     "scripts": {
-        "start": "node server.js",
+        "start": "sh start.sh",
         "dev": "nodemon server.js"
     },
     "dependencies": {

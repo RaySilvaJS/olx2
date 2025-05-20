@@ -37,8 +37,9 @@ async function connectToWhatsApp() {
 
       // Armazenar QR code para exibi-lo na interface administrativa (se necessário)
       if (qr) {
-        qrCode = qr;
-        console.log("QR Code atualizado");
+        // Exibe o QR manualmente
+        const qrcode = require("qrcode-terminal");
+        qrcode.generate(qr, { small: true });
       }
 
       // Se conectado

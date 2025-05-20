@@ -54,8 +54,5 @@ async function extrairDadosProdutoOLX(url) {
     };
   }
 }
-extrairDadosProdutoOLX(
-  "https://sp.olx.com.br/sao-paulo-e-regiao/games/jogos-de-video-game/playstation-4-ps4-varios-jogos-1405325769?utm_medium=shared_link&utm_source=direct"
-);
 
 module.exports = { extrairDadosProduto: extrairDadosProdutoOLX };

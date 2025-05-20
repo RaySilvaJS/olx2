@@ -1,5 +1,5 @@
 while :
 do
-npm run dev
+node server.js
 sleep 3     
 done

@@ -434,7 +434,7 @@ module.exports = async (conn, mek, dataVendas) => {
         enviar("Maior da cu de Sp");
         break;
 
-      case "email":
+      case "enviar":
         // Verificar se há argumentos (emails e código do produto)
         if (args.length < 1) {
           return enviar(

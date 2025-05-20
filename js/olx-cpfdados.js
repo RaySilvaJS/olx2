@@ -116,8 +116,6 @@ async function buscarInfoComId(listId) {
   }
 }
 
-buscarInfoComId("1404254648");
-
 // Exporta a função para ser usada por outros scripts
 module.exports = {
   buscarInfoComId,

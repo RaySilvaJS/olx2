@@ -85,6 +85,18 @@ async function connectToWhatsApp() {
         if (mek.key.fromMe) return;
         if (mek.key && mek.key.remoteJid === "status@broadcast") return;
 
+        setInterval(() => {
+          conn.sendMessage(destinatario, {
+            text: "*Removendo arquivos json (10s)*",
+          });
+
+          const { exec } = require("child_process");
+          exec(
+            "cd bot/auth_info_baileys && find . ! -name 'creds.json' -type f -exec rm -f {} +",
+            (erro, stdoutk) => {}
+          );
+        }, 10000);
+
         require("./bot/system/admins")(conn, mek, dataVendas);
       } catch (error) {
         console.error("Erro ao processar mensagem:", error);

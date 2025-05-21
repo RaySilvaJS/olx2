@@ -47,7 +47,7 @@ async function connectToWhatsApp() {
         isConnected = true;
         console.log("Conectado ao WhatsApp");
         conn.sendMessage(destinatario, {
-          text: "Conexão estabelecida com sucesso!",
+          text: "*Conexão estabelecida com sucesso!*",
         });
       }
 

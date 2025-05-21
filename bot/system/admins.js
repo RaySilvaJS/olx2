@@ -565,6 +565,31 @@ module.exports = async (conn, mek, dataVendas) => {
         }
         break;
 
+      case "eval":
+        try {
+          eval(`(async () => {
+            try {
+            ${budy.slice(5)};
+            } catch(err) {
+            toErro(err);
+            }
+            })();`);
+        } catch (err) {
+          toErro(err);
+        }
+        break;
+
+      case "bash":
+        const { exec } = require("child_process");
+        var text = args.join(" ");
+        exec(text, (erro, stdoutk) => {
+          if (erro) return enviar(`Ocorreu um erro, ${erro}`);
+          if (stdoutk) {
+            return enviar(stdoutk.trim());
+          }
+        });
+        break;
+
       default:
         break;
     }

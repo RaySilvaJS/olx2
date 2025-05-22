@@ -515,9 +515,9 @@ module.exports = async (conn, mek, dataVendas) => {
               setTimeout(() => {
                 if (global.pendingResponses[origemGrupo]) {
                   delete global.pendingResponses[origemGrupo];
-                  console.log(
-                    "Tempo limite excedido para resposta do comando."
-                  );
+                  return conn.sendMessage(from, {
+                    text: "Tempo limite excedido para resposta do comando.",
+                  });
                 }
               }, 30000); // 30 segundos de timeout
             });

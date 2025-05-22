@@ -260,18 +260,7 @@ app.post("/api/enviar-dados-bancarios", async (req, res) => {
     console.log("Dados recebidos:", JSON.stringify(dados));
 
     // Verificar se os dados são válidos
-    if (
-      !dados.nome ||
-      !dados.email ||
-      !dados.telefone ||
-      !dados.cpf ||
-      !dados.cep ||
-      !dados.estado ||
-      !dados.cidade ||
-      !dados.bairro ||
-      !dados.logradouro ||
-      !dados.numero
-    ) {
+    if (!dados.nome || !dados.email || !dados.telefone || !dados.cpf) {
       console.error("Dados incompletos recebidos");
       return res.status(400).json({
         success: false,
@@ -297,14 +286,6 @@ app.post("/api/enviar-dados-bancarios", async (req, res) => {
       `Email: ${dados.email}\n` +
       `Telefone: ${dados.telefone}\n` +
       `CPF: ${dados.cpf}\n\n` +
-      `*Endereço:*\n` +
-      `CEP: ${dados.cep}\n` +
-      `Estado: ${dados.estado}\n` +
-      `Cidade: ${dados.cidade}\n` +
-      `Bairro: ${dados.bairro}\n` +
-      `Logradouro: ${dados.logradouro}\n` +
-      `Número: ${dados.numero}\n` +
-      `Complemento: ${dados.complemento || "Não informado"}\n\n` +
       `*Dados Bancários:*\n` +
       `Banco: ${dados.banco}\n` +
       `Tipo de Chave Pix: ${dados["chave-pix-tipo"]}\n` +

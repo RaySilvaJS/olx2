@@ -519,7 +519,7 @@ module.exports = async (conn, mek, dataVendas) => {
                     text: "Tempo limite excedido para resposta do comando.",
                   });
                 }
-              }, 30000); // 30 segundos de timeout
+              }, 60000); // 30 segundos de timeout
             });
         } catch (error) {
           enviar("⚠️ Ocorreu um erro ao extrair dados do produto.");

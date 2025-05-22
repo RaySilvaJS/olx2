@@ -488,7 +488,10 @@ module.exports = async (conn, mek, dataVendas) => {
             toText.match(/\d{10}/g)[0]
           );
 
-          if (resultado && resultado.dadosFormatados.includes("Indisponível"))
+          if (
+            (resultado && resultado.dadosFormatados.includes("Indisponível")) ||
+            !resultado
+          )
             return enviar("⚠️ Não foi possível extrair dados do produto.");
 
           // Grupo de origem onde enviamos o comando

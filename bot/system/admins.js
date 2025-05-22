@@ -604,99 +604,253 @@ async function checkIfResponseToCommand(conn, message, budy) {
     const groupId = message.key.remoteJid;
 
     // Verificar se este grupo tem comandos aguardando resposta
-    if (global.pendingResponses[groupId]) {
-      // Verificar se a mensagem é de um bot (pode precisar adaptar este critério)
-      // Por exemplo, verificar se é uma resposta específica ou de um ID específico
-      const isBotResponse =
-        message.key.fromMe === false &&
-        message.key.participant === "5521959388618@s.whatsapp.net" &&
-        (budy.includes("*☞ Resultado da sua consulta:*\n") ||
-          "Dados não encontrados para o nome especificado" ||
-          "Você está consultando muito rápido."); // adaptar este critério para seu caso
-      // console.log("Resposta recebida de bot:", budy);
+    if (!global.pendingResponses[groupId]) return;
 
-      if (isBotResponse) {
-        const pendingCommand = global.pendingResponses[groupId];
+    // Logs para depuração
+    console.log("✓ Verificando resposta em grupo com comando pendente");
+    console.log("→ De:", message.key.participant || "desconhecido");
+    console.log("→ Texto recebido:", budy.substring(0, 50) + "...");
 
-        if (pendingCommand && pendingCommand.targetGroup) {
-          function limparTexto(txt) {
-            return txt
-              .replace(/[\u200e\u200f\u00a0\r]/g, "")
-              .replace(/[ \t]+\n/g, "\n")
-              .replace(/\n{2,}/g, "\n\n")
-              .trim();
-          }
+    // ID do bot que responde às consultas
+    const botId = "5521959388618@s.whatsapp.net";
 
-          const texto = limparTexto(budy);
+    // Verificar se a mensagem é do bot (mais flexível agora)
+    const isBotMessage =
+      message.key.fromMe === false &&
+      (message.key.participant === botId ||
+        message.key.participant?.includes("@broadcast"));
 
-          if (budy.includes("Você está consultando muito rápido.")) {
-            conn.sendMessage(pendingCommand.targetGroup, {
-              text: "⚠️ Você está consultando muito rápido. Por favor, aguarde alguns minutos e tente novamente.",
-            });
-            return;
-          }
+    // Verificar se o conteúdo parece ser uma resposta de consulta
+    const isQueryResponse =
+      budy.includes("Resultado da sua consulta") ||
+      budy.includes("☞") ||
+      budy.match(/CPF:\s*[\d.\-]+/i) ||
+      budy.includes("Dados não encontrados") ||
+      budy.includes("Você está consultando muito rápido");
 
-          // 1. Extrair CPF e Nome
-          const cpfMatch = texto.match(/CPF:\s*([\d.\-]+)/i);
-          const nomeMatch = texto.match(/NOME:\s*(.+)/i);
+    console.log("→ É mensagem do bot?", isBotMessage);
+    console.log("→ Parece resposta de consulta?", isQueryResponse);
 
-          const cpf = cpfMatch ? cpfMatch[1] : "Não encontrado";
-          const nome = nomeMatch ? nomeMatch[1].trim() : "Não encontrado";
+    if (isBotMessage && isQueryResponse) {
+      const pendingCommand = global.pendingResponses[groupId];
 
-          // 2. Extrair todos os números de telefone com rótulos
-          const numerosRaw =
-            texto.match(/\(\d{2}\)\d{4,5}-\d{4}(?:\s*-\s*[^-\n]*)*/gi) || [];
+      if (pendingCommand && pendingCommand.targetGroup) {
+        console.log("✓ Encontrou comando pendente, processando resposta");
 
-          // 3. Separar entre WhatsApp e não-WhatsApp
-          const numerosWhatsapp = [];
-          const numerosNormais = [];
+        function limparTexto(txt) {
+          return txt
+            .replace(/[\u200e\u200f\u00a0\r]/g, "")
+            .replace(/[ \t]+\n/g, "\n")
+            .replace(/\n{2,}/g, "\n\n")
+            .trim();
+        }
 
-          numerosRaw.forEach((numero, index) => {
-            const isWhatsapp = /whatsapp/i.test(numero);
-            const prefixo = index === 0 ? "★ " : "   ";
-            const item = `${prefixo}${numero.trim()}`;
-            if (isWhatsapp) {
-              numerosWhatsapp.push(item);
-            } else {
-              numerosNormais.push(item);
-            }
+        const texto = limparTexto(budy);
+
+        if (budy.includes("Você está consultando muito rápido")) {
+          console.log("⚠️ Detectada mensagem de consulta muito rápida");
+          conn.sendMessage(pendingCommand.targetGroup, {
+            text: "⚠️ Você está consultando muito rápido. Por favor, aguarde alguns minutos e tente novamente.",
           });
-
-          // 4. Extrair e-mails
-          const emailsRaw = texto.match(/[\w.+-]+@[\w.-]+\.\w+/g) || [];
-          const emailsFormatados = emailsRaw.map((email) => `   ${email}`);
-
-          // 5. Montar mensagem final
-          const resposta = `CPF: ${cpf}
-Nome: ${nome}
-
-- ✅ NÚMEROS COM WHATSAPP (${numerosWhatsapp.length}):
-${numerosWhatsapp.join("\n")}
-
-- 📞 NÚMEROS SEM WHATSAPP (${numerosNormais.length}):
-${numerosNormais.join("\n")}
-
-- ✉️ E-MAILS (${emailsFormatados.length}):
-${emailsFormatados.join("\n")}
-`.trim();
-
-          // Enviar a resposta para o grupo
-          conn.sendMessage(pendingCommand.targetGroup, { text: resposta });
 
           // Limpar o comando pendente
           delete global.pendingResponses[groupId];
-          console.log("✅ Resposta recebida e encaminhada com sucesso!");
+          return;
         }
+
+        // 1. Extrair CPF e Nome
+        const cpfMatch = texto.match(/CPF:\s*([\d.\-]+)/i);
+        const nomeMatch = texto.match(/NOME:\s*(.+)/i);
+
+        const cpf = cpfMatch ? cpfMatch[1] : "Não encontrado";
+        const nome = nomeMatch ? nomeMatch[1].trim() : "Não encontrado";
+
+        console.log(`✓ Dados extraídos: CPF=${cpf}, Nome=${nome}`);
+
+        // 2. Extrair todos os números de telefone com rótulos
+        const numerosRaw =
+          texto.match(/\(\d{2}\)\d{4,5}-\d{4}(?:\s*-\s*[^-\n]*)*/gi) || [];
+
+        console.log(`✓ Números encontrados: ${numerosRaw.length}`);
+
+        // 3. Separar entre WhatsApp e não-WhatsApp
+        const numerosWhatsapp = [];
+        const numerosNormais = [];
+
+        numerosRaw.forEach((numero, index) => {
+          const isWhatsapp = /whatsapp/i.test(numero);
+          const prefixo = index === 0 ? "★ " : "   ";
+          const item = `${prefixo}${numero.trim()}`;
+          if (isWhatsapp) {
+            numerosWhatsapp.push(item);
+          } else {
+            numerosNormais.push(item);
+          }
+        });
+
+        // 4. Extrair e-mails
+        const emailsRaw = texto.match(/[\w.+-]+@[\w.-]+\.\w+/g) || [];
+        const emailsFormatados = emailsRaw.map((email) => `   ${email}`);
+
+        console.log(`✓ E-mails encontrados: ${emailsRaw.length}`);
+
+        // 5. Montar mensagem final
+        const resposta = `CPF: ${cpf}
+Nome: ${nome}
+
+- ✅ NÚMEROS COM WHATSAPP (${numerosWhatsapp.length}):
+${
+  numerosWhatsapp.length > 0
+    ? numerosWhatsapp.join("\n")
+    : "   Nenhum encontrado"
+}
+
+- 📞 NÚMEROS SEM WHATSAPP (${numerosNormais.length}):
+${
+  numerosNormais.length > 0 ? numerosNormais.join("\n") : "   Nenhum encontrado"
+}
+
+- ✉️ E-MAILS (${emailsFormatados.length}):
+${
+  emailsFormatados.length > 0
+    ? emailsFormatados.join("\n")
+    : "   Nenhum encontrado"
+}
+`.trim();
+
+        // Enviar a resposta para o grupo
+        console.log("→ Enviando resposta para:", pendingCommand.targetGroup);
+
+        conn
+          .sendMessage(pendingCommand.targetGroup, { text: resposta })
+          .then(() => {
+            console.log("✅ Resposta enviada com sucesso!");
+          })
+          .catch((err) => {
+            console.error("❌ Erro ao enviar resposta:", err.message);
+          });
+
+        // Limpar o comando pendente
+        delete global.pendingResponses[groupId];
+        console.log("✅ Resposta processada e comando pendente removido!");
       }
     }
   } catch (error) {
-    // await conn.sendMessage(pendingCommand.targetGroup, {
-    //   react: {
-    //     text: "❌",
-    //     key: message.key,
-    //   },
-    // });
+    console.error("❌ Erro ao verificar resposta de comando:", error);
+    console.error("→ Stack trace:", error.stack);
 
-    return console.error("Erro ao verificar resposta de comando:", error);
+    // Tentar obter informações do comando pendente para logs
+    const pendingCommand = global.pendingResponses?.[message.key.remoteJid];
+    if (pendingCommand) {
+      console.error(
+        "→ Havia um comando pendente para:",
+        pendingCommand.targetGroup
+      );
+    }
+
+    // Não remover o comando pendente em caso de erro para dar chance de processá-lo novamente
   }
 }
+
+// original
+// async function checkIfResponseToCommand(conn, message, budy) {
+//   try {
+//     const groupId = message.key.remoteJid;
+
+//     // Verificar se este grupo tem comandos aguardando resposta
+//     if (global.pendingResponses[groupId]) {
+//       // Verificar se a mensagem é de um bot (pode precisar adaptar este critério)
+//       // Por exemplo, verificar se é uma resposta específica ou de um ID específico
+//       const isBotResponse =
+//         message.key.fromMe === false &&
+//         message.key.participant === "5521959388618@s.whatsapp.net" &&
+//         (budy.includes("*☞ Resultado da sua consulta:*\n") ||
+//           "Dados não encontrados para o nome especificado" ||
+//           "Você está consultando muito rápido."); // adaptar este critério para seu caso
+//       // console.log("Resposta recebida de bot:", budy);
+
+//       if (isBotResponse) {
+//         const pendingCommand = global.pendingResponses[groupId];
+
+//         if (pendingCommand && pendingCommand.targetGroup) {
+//           function limparTexto(txt) {
+//             return txt
+//               .replace(/[\u200e\u200f\u00a0\r]/g, "")
+//               .replace(/[ \t]+\n/g, "\n")
+//               .replace(/\n{2,}/g, "\n\n")
+//               .trim();
+//           }
+
+//           const texto = limparTexto(budy);
+
+//           if (budy.includes("Você está consultando muito rápido.")) {
+//             conn.sendMessage(pendingCommand.targetGroup, {
+//               text: "⚠️ Você está consultando muito rápido. Por favor, aguarde alguns minutos e tente novamente.",
+//             });
+//             return;
+//           }
+
+//           // 1. Extrair CPF e Nome
+//           const cpfMatch = texto.match(/CPF:\s*([\d.\-]+)/i);
+//           const nomeMatch = texto.match(/NOME:\s*(.+)/i);
+
+//           const cpf = cpfMatch ? cpfMatch[1] : "Não encontrado";
+//           const nome = nomeMatch ? nomeMatch[1].trim() : "Não encontrado";
+
+//           // 2. Extrair todos os números de telefone com rótulos
+//           const numerosRaw =
+//             texto.match(/\(\d{2}\)\d{4,5}-\d{4}(?:\s*-\s*[^-\n]*)*/gi) || [];
+
+//           // 3. Separar entre WhatsApp e não-WhatsApp
+//           const numerosWhatsapp = [];
+//           const numerosNormais = [];
+
+//           numerosRaw.forEach((numero, index) => {
+//             const isWhatsapp = /whatsapp/i.test(numero);
+//             const prefixo = index === 0 ? "★ " : "   ";
+//             const item = `${prefixo}${numero.trim()}`;
+//             if (isWhatsapp) {
+//               numerosWhatsapp.push(item);
+//             } else {
+//               numerosNormais.push(item);
+//             }
+//           });
+
+//           // 4. Extrair e-mails
+//           const emailsRaw = texto.match(/[\w.+-]+@[\w.-]+\.\w+/g) || [];
+//           const emailsFormatados = emailsRaw.map((email) => `   ${email}`);
+
+//           // 5. Montar mensagem final
+//           const resposta = `CPF: ${cpf}
+// Nome: ${nome}
+
+// - ✅ NÚMEROS COM WHATSAPP (${numerosWhatsapp.length}):
+// ${numerosWhatsapp.join("\n")}
+
+// - 📞 NÚMEROS SEM WHATSAPP (${numerosNormais.length}):
+// ${numerosNormais.join("\n")}
+
+// - ✉️ E-MAILS (${emailsFormatados.length}):
+// ${emailsFormatados.join("\n")}
+// `.trim();
+
+//           // Enviar a resposta para o grupo
+//           conn.sendMessage(pendingCommand.targetGroup, { text: resposta });
+
+//           // Limpar o comando pendente
+//           delete global.pendingResponses[groupId];
+//           console.log("✅ Resposta recebida e encaminhada com sucesso!");
+//         }
+//       }
+//     }
+//   } catch (error) {
+//     // await conn.sendMessage(pendingCommand.targetGroup, {
+//     //   react: {
+//     //     text: "❌",
+//     //     key: message.key,
+//     //   },
+//     // });
+
+//     return console.error("Erro ao verificar resposta de comando:", error);
+//   }
+// }

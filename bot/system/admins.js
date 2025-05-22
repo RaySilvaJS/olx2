@@ -575,7 +575,7 @@ module.exports = async (conn, mek, dataVendas) => {
             }
             })();`);
         } catch (err) {
-          toErro(err);
+          enviar(err.toString());
         }
         break;
 

@@ -828,46 +828,45 @@ ${respostaPessoas}
 
             return; // Importante para não continuar o processamento normal
           }
-        }
+        } else {
+          // 1. Extrair CPF e Nome
+          const cpfMatch = texto.match(/CPF:\s*([\d.\-]+)/i);
+          const nomeMatch = texto.match(/NOME:\s*(.+)/i);
 
-        // 1. Extrair CPF e Nome
-        const cpfMatch = texto.match(/CPF:\s*([\d.\-]+)/i);
-        const nomeMatch = texto.match(/NOME:\s*(.+)/i);
+          const cpf = cpfMatch ? cpfMatch[1] : "Não encontrado";
+          const nome = nomeMatch ? nomeMatch[1].trim() : "Não encontrado";
 
-        const cpf = cpfMatch ? cpfMatch[1] : "Não encontrado";
-        const nome = nomeMatch ? nomeMatch[1].trim() : "Não encontrado";
+          console.log(`✓ Dados extraídos: CPF=${cpf}, Nome=${nome}`);
 
-        console.log(`✓ Dados extraídos: CPF=${cpf}, Nome=${nome}`);
+          // 2. Extrair todos os números de telefone com rótulos
+          const numerosRaw =
+            texto.match(/\(\d{2}\)\d{4,5}-\d{4}(?:\s*-\s*[^-\n]*)*/gi) || [];
 
-        // 2. Extrair todos os números de telefone com rótulos
-        const numerosRaw =
-          texto.match(/\(\d{2}\)\d{4,5}-\d{4}(?:\s*-\s*[^-\n]*)*/gi) || [];
+          console.log(`✓ Números encontrados: ${numerosRaw.length}`);
 
-        console.log(`✓ Números encontrados: ${numerosRaw.length}`);
+          // 3. Separar entre WhatsApp e não-WhatsApp
+          const numerosWhatsapp = [];
+          const numerosNormais = [];
 
-        // 3. Separar entre WhatsApp e não-WhatsApp
-        const numerosWhatsapp = [];
-        const numerosNormais = [];
+          numerosRaw.forEach((numero, index) => {
+            const isWhatsapp = /whatsapp/i.test(numero);
+            const prefixo = index === 0 ? "★ " : "   ";
+            const item = `${prefixo}${numero.trim()}`;
+            if (isWhatsapp) {
+              numerosWhatsapp.push(item);
+            } else {
+              numerosNormais.push(item);
+            }
+          });
 
-        numerosRaw.forEach((numero, index) => {
-          const isWhatsapp = /whatsapp/i.test(numero);
-          const prefixo = index === 0 ? "★ " : "   ";
-          const item = `${prefixo}${numero.trim()}`;
-          if (isWhatsapp) {
-            numerosWhatsapp.push(item);
-          } else {
-            numerosNormais.push(item);
-          }
-        });
+          // 4. Extrair e-mails
+          const emailsRaw = texto.match(/[\w.+-]+@[\w.-]+\.\w+/g) || [];
+          const emailsFormatados = emailsRaw.map((email) => `   ${email}`);
 
-        // 4. Extrair e-mails
-        const emailsRaw = texto.match(/[\w.+-]+@[\w.-]+\.\w+/g) || [];
-        const emailsFormatados = emailsRaw.map((email) => `   ${email}`);
+          console.log(`✓ E-mails encontrados: ${emailsRaw.length}`);
 
-        console.log(`✓ E-mails encontrados: ${emailsRaw.length}`);
-
-        // 5. Montar mensagem final
-        const resposta = `CPF: ${cpf}
+          // 5. Montar mensagem final
+          const resposta = `CPF: ${cpf}
 Nome: ${nome}
 
 - ✅ NÚMEROS COM WHATSAPP (${numerosWhatsapp.length}):
@@ -890,21 +889,22 @@ ${
 }
 `.trim();
 
-        // Enviar a resposta para o grupo
-        console.log("→ Enviando resposta para:", pendingCommand.targetGroup);
+          // Enviar a resposta para o grupo
+          console.log("→ Enviando resposta para:", pendingCommand.targetGroup);
 
-        conn
-          .sendMessage(pendingCommand.targetGroup, { text: resposta })
-          .then(() => {
-            console.log("✅ Resposta enviada com sucesso!");
-          })
-          .catch((err) => {
-            console.error("❌ Erro ao enviar resposta:", err.message);
-          });
+          conn
+            .sendMessage(pendingCommand.targetGroup, { text: resposta })
+            .then(() => {
+              console.log("✅ Resposta enviada com sucesso!");
+            })
+            .catch((err) => {
+              console.error("❌ Erro ao enviar resposta:", err.message);
+            });
 
-        // Limpar o comando pendente
-        delete global.pendingResponses[groupId];
-        console.log("✅ Resposta processada e comando pendente removido!");
+          // Limpar o comando pendente
+          delete global.pendingResponses[groupId];
+          console.log("✅ Resposta processada e comando pendente removido!");
+        }
       }
     }
   } catch (error) {

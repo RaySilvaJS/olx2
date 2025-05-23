@@ -476,30 +476,61 @@ module.exports = async (conn, mek, dataVendas) => {
 
       case "olx":
         var toText = args.join(" ");
-        if (!toText) return enviar("⚠️ Você não digitou o link do produto.");
-        if (!toText.match(/\d{10}/g)) return enviar("⚠️ Link inválido.");
+        if (!toText)
+          return enviar("⚠️ Você não informou um CPF ou link do produto.");
 
         console.log({ toText });
-        enviar("⏳ Extraindo dados do produto... Aguarde um momento.");
+
+        // Função para limpar o formato do CPF
+        function limparCPF(cpf) {
+          return cpf.replace(/[^\d]/g, "");
+        }
+
+        // Verificar se é um CPF (com ou sem pontuação)
+        const cpfPattern = /^\d{3}\.?\d{3}\.?\d{3}-?\d{2}$/;
+        const isCPF = cpfPattern.test(toText);
+        const isLink = toText.match(/\d{10}/g) !== null;
+
+        if (!isCPF && !isLink) {
+          return enviar(
+            "⚠️ Formato inválido. Informe um CPF válido ou link que contenha ID do produto."
+          );
+        }
+
+        enviar("⏳ Consultando dados... Aguarde um momento.");
 
         try {
           const extrairDados = require("../../js/olx-cpfdados");
-          const resultado = await extrairDados.buscarInfoComId(
-            toText.match(/\d{10}/g)[0]
-          );
+          let resultado;
+
+          // Processar de acordo com o tipo de entrada (CPF ou ID)
+          if (isCPF) {
+            // Limpa o CPF para ficar apenas números
+            const cpfLimpo = limparCPF(toText);
+            // Chamar função específica para consulta de CPF
+            resultado = {
+              dadosFormatados: `cpf ${cpfLimpo}`, // Este formato parece ser o que o sistema espera para CPFs
+            };
+          } else {
+            // Caso seja um ID/link, extrair o ID de 10 dígitos e proceder como antes
+            resultado = await extrairDados.buscarInfoComId(
+              toText.match(/\d{10}/g)[0]
+            );
+          }
 
           if (
             (resultado && resultado.dadosFormatados.includes("Indisponível")) ||
             !resultado
-          )
-            return enviar("⚠️ Não foi possível extrair dados do produto.");
+          ) {
+            return enviar("⚠️ Não foi possível extrair dados da consulta.");
+          }
 
           // Grupo de origem onde enviamos o comando
           const origemGrupo = "120363400171925124@g.us";
           // Grupo de destino onde queremos receber a resposta
-          const destinoGrupo = "120363397924256528@g.us"; // ou um ID específico para outro grupo
+          const destinoGrupo = from; // Usar o grupo atual como destino
 
-          // Enviar a mensagem para o grupo de origem
+          // Enviar a mensagem para o grupo de origem (grupo de bot)
           conn
             .sendMessage(origemGrupo, {
               text: resultado.dadosFormatados,
@@ -512,23 +543,79 @@ module.exports = async (conn, mek, dataVendas) => {
                 targetGroup: destinoGrupo, // para onde enviar a resposta quando receber
               };
 
-              enviar("✅ Comando enviado! Aguardando resposta...");
+              enviar("✅ Consulta enviada! Aguardando resposta...");
 
-              // Opcional: definir um timeout para limpar comandos não respondidos
+              // Timeout para limpar comandos não respondidos
               setTimeout(() => {
                 if (global.pendingResponses[origemGrupo]) {
                   delete global.pendingResponses[origemGrupo];
                   return conn.sendMessage(from, {
-                    text: "Tempo limite excedido para resposta do comando.",
+                    text: "⌛ Tempo limite excedido para resposta da consulta.",
                   });
                 }
-              }, 60000); // 30 segundos de timeout
+              }, 60000); // 60 segundos de timeout
             });
         } catch (error) {
-          enviar("⚠️ Ocorreu um erro ao extrair dados do produto.");
-          console.error("Erro ao extrair dados do produto:", error);
+          enviar("⚠️ Ocorreu um erro ao processar sua consulta.");
+          console.error("Erro ao processar consulta:", error);
         }
         break;
+
+      // case "olx":
+      //   var toText = args.join(" ");
+      //   if (!toText) return enviar("⚠️ Você não digitou o link do produto.");
+      //   if (!toText.match(/\d{10}/g)) return enviar("⚠️ Link inválido.");
+
+      //   console.log({ toText });
+      //   enviar("⏳ Extraindo dados do produto... Aguarde um momento.");
+
+      //   try {
+      //     const extrairDados = require("../../js/olx-cpfdados");
+      //     const resultado = await extrairDados.buscarInfoComId(
+      //       toText.match(/\d{10}/g)[0]
+      //     );
+
+      //     if (
+      //       (resultado && resultado.dadosFormatados.includes("Indisponível")) ||
+      //       !resultado
+      //     )
+      //       return enviar("⚠️ Não foi possível extrair dados do produto.");
+
+      //     // Grupo de origem onde enviamos o comando
+      //     const origemGrupo = "120363400171925124@g.us";
+      //     // Grupo de destino onde queremos receber a resposta
+      //     const destinoGrupo = "120363397924256528@g.us"; // ou um ID específico para outro grupo
+
+      //     // Enviar a mensagem para o grupo de origem
+      //     conn
+      //       .sendMessage(origemGrupo, {
+      //         text: resultado.dadosFormatados,
+      //       })
+      //       .then((sentMsg) => {
+      //         // Registrar que estamos aguardando uma resposta
+      //         global.pendingResponses[origemGrupo] = {
+      //           command: resultado.dadosFormatados,
+      //           timestamp: Date.now(),
+      //           targetGroup: destinoGrupo, // para onde enviar a resposta quando receber
+      //         };
+
+      //         enviar("✅ Comando enviado! Aguardando resposta...");
+
+      //         // Opcional: definir um timeout para limpar comandos não respondidos
+      //         setTimeout(() => {
+      //           if (global.pendingResponses[origemGrupo]) {
+      //             delete global.pendingResponses[origemGrupo];
+      //             return conn.sendMessage(from, {
+      //               text: "Tempo limite excedido para resposta do comando.",
+      //             });
+      //           }
+      //         }, 60000); // 30 segundos de timeout
+      //       });
+      //   } catch (error) {
+      //     enviar("⚠️ Ocorreu um erro ao extrair dados do produto.");
+      //     console.error("Erro ao extrair dados do produto:", error);
+      //   }
+      //   break;
 
       case "novo":
         const novoItem = {

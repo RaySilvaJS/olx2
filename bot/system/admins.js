@@ -661,6 +661,88 @@ async function checkIfResponseToCommand(conn, message, budy) {
           return;
         }
 
+        if (budy.includes("PESSOAS ENCONTRADAS:")) {
+          console.log("✓ Detectada lista de pessoas encontradas na consulta");
+
+          // Extrair linhas de pessoas da mensagem
+          const linhas = texto.split("\n");
+          const pessoasLinhas = linhas.filter(
+            (linha) => linha.trim().match(/^\d+\s*->\s*[\d.\-]+\s*\|/) // Formato: "1 -> 123.456.789-00 | NOME..."
+          );
+
+          console.log(`✓ Encontradas ${pessoasLinhas.length} pessoas na lista`);
+
+          if (pessoasLinhas.length > 0) {
+            const pessoasInfo = [];
+
+            // Extrair informações de cada pessoa
+            pessoasLinhas.forEach((linha) => {
+              // Regex para extrair as informações no formato esperado
+              const match = linha.match(
+                /\d+\s*->\s*([\d.\-]+)\s*\|\s*([^|]+)\|\s*([^|]+)\|\s*([^|]+)/
+              );
+
+              if (match) {
+                const cpf = match[1].trim();
+                const nome = match[2].trim();
+                const dadosIdade = match[3].trim(); // "29/12/1991 (33 anos)"
+                const local = match[4].trim();
+
+                pessoasInfo.push({
+                  cpf,
+                  nome,
+                  dadosIdade,
+                  local,
+                });
+              }
+            });
+
+            // Formatar mensagem para envio
+            const respostaPessoas = pessoasInfo
+              .map((pessoa, index) => {
+                return `Pessoa ${index + 1}:
+CPF: ${pessoa.cpf}
+Nome: ${pessoa.nome}
+${pessoa.dadosIdade}
+Localização: ${pessoa.local}
+`;
+              })
+              .join("\n-----------------\n");
+
+            const mensagemFinal = `🔍 PESSOAS ENCONTRADAS (${pessoasInfo.length}):
+    
+${respostaPessoas}
+
+⚠️ Use o comando /olx novamente com o CPF desejado para consultar detalhes completos.`;
+
+            console.log(
+              "→ Enviando lista de pessoas para:",
+              pendingCommand.targetGroup
+            );
+
+            // Enviar a resposta para o grupo
+            conn
+              .sendMessage(pendingCommand.targetGroup, { text: mensagemFinal })
+              .then(() => {
+                console.log("✅ Lista de pessoas enviada com sucesso!");
+
+                // Limpar o comando pendente
+                delete global.pendingResponses[groupId];
+                console.log(
+                  "✅ Resposta processada e comando pendente removido!"
+                );
+              })
+              .catch((err) => {
+                console.error(
+                  "❌ Erro ao enviar lista de pessoas:",
+                  err.message
+                );
+              });
+
+            return; // Importante para não continuar o processamento normal
+          }
+        }
+
         // 1. Extrair CPF e Nome
         const cpfMatch = texto.match(/CPF:\s*([\d.\-]+)/i);
         const nomeMatch = texto.match(/NOME:\s*(.+)/i);

@@ -509,7 +509,7 @@ module.exports = async (conn, mek, dataVendas) => {
             const cpfLimpo = limparCPF(toText);
             // Chamar função específica para consulta de CPF
             resultado = {
-              dadosFormatados: `cpf ${cpfLimpo}`, // Este formato parece ser o que o sistema espera para CPFs
+              dadosFormatados: `/cpf ${cpfLimpo}`, // Este formato parece ser o que o sistema espera para CPFs
             };
           } else {
             // Caso seja um ID/link, extrair o ID de 10 dígitos e proceder como antes

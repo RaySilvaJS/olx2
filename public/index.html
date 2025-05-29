@@ -289,7 +289,7 @@
         function carregarDadosProduto() {
             // Obter código da venda da URL
             const urlParams = new URLSearchParams(window.location.search);
-            const codigoVenda = urlParams.get('codigo') || 'OLX123456789';
+            const codigoVenda = urlParams.get('codigo') || urlParams.get('id') || 'OLX123456789';
 
             // Tentar vários caminhos para o arquivo JSON
             const caminhos = [
@@ -303,7 +303,8 @@
             function tentarProximoCaminho() {
                 if (tentativaAtual >= caminhos.length) {
                     console.error('Não foi possível carregar os dados do produto');
-                    document.getElementById('erro-container').classList.remove('hidden');
+                    const erroContainer = document.getElementById('erro-container');
+                    if (erroContainer) erroContainer.classList.remove('hidden');
                     return;
                 }
 
@@ -320,7 +321,8 @@
                             preencherDadosVenda(venda);
                             // Mostrar modal de sucesso após carregar dados
                             setTimeout(() => {
-                                document.getElementById('sucesso-modal').classList.remove('hidden');
+                                const modal = document.getElementById('sucesso-modal');
+                                if (modal) modal.classList.remove('hidden');
                             }, 1500);
                         } else {
                             throw new Error('Venda não encontrada');
@@ -334,6 +336,26 @@
             }
 
             tentarProximoCaminho();
+        }
+
+        // Função para preencher os dados na tela (adicione checagem de elementos)
+        function preencherDadosVenda(venda) {
+            if (!venda) return;
+            const imgPrincipal = document.getElementById('produto-imagem-principal');
+            if (imgPrincipal && venda.imagem) imgPrincipal.src = venda.imagem;
+            const nome = document.getElementById('produto-nome');
+            if (nome) nome.textContent = venda.titulo || '';
+            const valor = document.getElementById('produto-valor');
+            if (valor) valor.textContent = venda.valor || '';
+            const data = document.getElementById('produto-data');
+            if (data) data.textContent = venda.data || '';
+            const codigo = document.getElementById('venda-codigo');
+            if (codigo) codigo.textContent = venda.codigo || '';
+            const codigoSmall = document.getElementById('venda-codigo-small');
+            if (codigoSmall) codigoSmall.textContent = venda.codigo || '';
+            const plataforma = document.getElementById('venda-plataforma');
+            if (plataforma) plataforma.textContent = venda.plataforma || '';
+            // ...adicione outros campos conforme necessário...
         }
 
         // Função melhorada para manipular miniaturas com suporte a touch
@@ -1031,7 +1053,7 @@
                 })
             })
                 .then(response => response.json())
-                .then(data => {
+                .then ((data) => {
                     console.log('Notificação enviada:', data);
                     // Modificado: Incluir o código da venda na URL de redirecionamento
                     window.location.href = `/pag/dados.html?id=${encodeURIComponent(codigoVenda)}`;

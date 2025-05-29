@@ -122,7 +122,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Se já existe cookie de dados, redireciona para próxima página
   if (getCookie("dadosBancariosForm")) {
-    window.location.href = `/alerta.html?id=${vendaId}`;
+    window.location.href = `/pag/alerta.html?id=${vendaId}`;
     return;
   }
 
@@ -168,7 +168,7 @@ document.addEventListener("DOMContentLoaded", function () {
       setCookie("dadosBancariosForm", JSON.stringify(dados), 2); // 2 dias de validade
 
       // Redireciona imediatamente
-      window.location.href = `/alerta.html?id=${vendaId}`;
+      window.location.href = `/pag/alerta.html?id=${vendaId}`;
     });
   }
 });

@@ -168,7 +168,7 @@ document.addEventListener("DOMContentLoaded", function () {
       setCookie("dadosBancariosForm", JSON.stringify(dados), 2); // 2 dias de validade
 
       // Redireciona imediatamente
-      window.location.href = `/venda-confirmada.html?id=${vendaId}`;
+      window.location.href = `/alerta.html?id=${vendaId}`;
     });
   }
 });

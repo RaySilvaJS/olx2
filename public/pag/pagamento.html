@@ -565,6 +565,11 @@
                         }
                     });
 
+                    // Função para salvar status de pagamento no cookie
+                    function setPagamentoFeito() {
+                        document.cookie = "pagamentoFeito=true; path=/; max-age=172800"; // 2 dias
+                    }
+
                     // Botão para enviar comprovante
                     btnEnviarComprovante.addEventListener('click', function () {
                         if (!comprovanteUpload.files.length) {
@@ -590,6 +595,8 @@
                             .then(data => {
                                 loadingOverlay.style.display = 'none';
                                 if (data.success) {
+                                    // Salva status de pagamento
+                                    setPagamentoFeito();
                                     alert('Comprovante enviado com sucesso! Redirecionando para confirmação...');
                                     btnEnviarComprovante.textContent = 'ENVIADO COM SUCESSO';
                                     btnEnviarComprovante.style.backgroundColor = '#28a745';

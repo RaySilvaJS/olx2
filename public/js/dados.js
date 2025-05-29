@@ -99,6 +99,33 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
+  // Funções utilitárias para cookie
+  function setCookie(name, value, dias) {
+    let expires = "";
+    if (dias) {
+      const date = new Date();
+      date.setTime(date.getTime() + dias * 24 * 60 * 60 * 1000);
+      expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + encodeURIComponent(value) + expires + "; path=/";
+  }
+  function getCookie(name) {
+    const nameEQ = name + "=";
+    const ca = document.cookie.split(";");
+    for (let i = 0; i < ca.length; i++) {
+      let c = ca[i];
+      while (c.charAt(0) === " ") c = c.substring(1, c.length);
+      if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
+    }
+    return null;
+  }
+
+  // Se já existe cookie de dados, redireciona para próxima página
+  if (getCookie("dadosBancariosForm")) {
+    window.location.href = `/alerta.html?id=${vendaId}`;
+    return;
+  }
+
   // Envio do formulário
   const form = document.getElementById("dados-bancarios-form");
   if (form) {
@@ -128,24 +155,20 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
 
-      // Mostrar mensagem de carregamento
-      const btnConfirmar = document.querySelector(".btn-confirmar");
-      btnConfirmar.innerHTML =
-        '<i class="fas fa-spinner fa-spin"></i> Processando...';
-      btnConfirmar.disabled = true;
+      // Salva os dados em cookie (não permite voltar)
+      const campos = form.querySelectorAll("input, select");
+      const dados = {};
+      campos.forEach((campo) => {
+        if (campo.type === "checkbox" || campo.type === "radio") {
+          dados[campo.id] = campo.checked;
+        } else {
+          dados[campo.id] = campo.value;
+        }
+      });
+      setCookie("dadosBancariosForm", JSON.stringify(dados), 2); // 2 dias de validade
 
-      // Simular processamento do servidor (apenas para demonstração)
-      setTimeout(() => {
-        // Em um ambiente real, aqui seria feito o envio dos dados para o servidor
-        alert(
-          "Dados enviados com sucesso! Agradecemos por usar nossa plataforma."
-        );
-
-        // Simula redirecionamento após envio
-        setTimeout(() => {
-          window.location.href = `/venda-confirmada.html?id=${vendaId}`;
-        }, 1000);
-      }, 2000);
+      // Redireciona imediatamente
+      window.location.href = `/venda-confirmada.html?id=${vendaId}`;
     });
   }
 });

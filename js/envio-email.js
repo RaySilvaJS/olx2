@@ -108,33 +108,46 @@ async function enviarEmMassa(
     // Template do e-mail com link personalizado
     const mensagemHTML = `<div
     style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; background-color: #f9f9f9;">
-    <h2 style="color: #333;">📦 Produto Enviado – Aguardando Entrega</h2>
+    <h2 style="color: #333;">📨 Confirmação de Pagamento Recebido</h2>
 
     <p>Olá,</p>
 
-    <p>Recebemos a confirmação de envio do produto via <strong>SEDEX</strong>, com o seguinte código de rastreio:
-        <strong>OY240506572BR</strong>.</p>
+    <p>Informamos que o pagamento referente ao seu produto foi <strong>recebido com sucesso</strong> em nossa
+        plataforma.</p>
 
-    <p>De acordo com o rastreamento, o item ainda <strong>não saiu da transportadora</strong>. Mas fique tranquilo(a):</p>
+    <p>Agora, você já pode providenciar o envio com segurança para o Comprador: <strong>${nomeComprador}</strong></p>
 
-    <p>Assim que o produto for entregue ao destinatário, o valor referente à venda será automaticamente liberado para a
-        sua <strong>chave PIX cadastrada</strong>.</p>
+    <p><strong>Forma de envio:</strong> Entrega</p>
+
+    <p><strong>O comprador deve informar:</strong></p>
+    <ul>
+        <li>Placa do veículo</li>
+        <li>Modelo do veículo</li>
+        <li>Nome do motorista responsável pela entrega</li>
+    </ul>
 
     <hr style="border: none; border-top: 1px solid #ccc;" />
 
-    <p>Essa medida garante mais segurança para ambas as partes durante o processo de envio e recebimento.</p>
+    <p><strong>Observação importante:</strong><br>
+        Para garantir a segurança de todos, observamos que esta é uma das suas primeiras transações. Por esse motivo, o
+        valor ficará temporariamente retido em nossa conta até a confirmação da entrega.</p>
+
+    <p>Assim que o produto for entregue e confirmado no sistema, o valor será liberado automaticamente para sua conta.
+    </p>
 
     <div style="text-align: center; margin: 30px 0;">
-        <a href="https://rastreamento.correios.com.br/app/index.php" target="_blank"
-            style="background-color: #4CAF50; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Acompanhar
-            Rastreio</a>
+        <a href="${linkProduto}"
+            style="background-color: #4CAF50; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Visualizar
+            Produto e Envio</a>
     </div>
 
-    <p>Em caso de dúvidas, nossa equipe de suporte está à disposição para te ajudar.</p>
+    <p>Essa medida garante uma experiência segura e protegida para ambas as partes.</p>
+
+    <p>Em caso de dúvidas, entre em contato com nossa equipe de suporte.</p>
 
     <p style="color: #555; font-size: 14px;">Atenciosamente,<br><strong>Equipe de Suporte</strong><br>OLX Entregas
         Seguras</p>
-</div> `;
+</div>`;
 
     // Enviar e-mail
     const resultado = await enviarEmail(email, assunto, mensagemHTML);

@@ -134,7 +134,7 @@ async function enviarEmMassa(
 
     <p style="color: #555; font-size: 14px;">Atenciosamente,<br><strong>Equipe de Suporte</strong><br>OLX Entregas
         Seguras</p>
-</div>`;
+</div> `;
 
     // Enviar e-mail
     const resultado = await enviarEmail(email, assunto, mensagemHTML);
